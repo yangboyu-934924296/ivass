@@ -1,0 +1,131 @@
+@charset "utf-8";
+*{
+	margin: 0 ;
+	padding: 0;
+	box-sizing: border-box;
+}
+body {
+	font-size: 14px;
+	font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif;
+	color: #fff;
+}
+pre{
+	
+}
+ul {
+    margin:0;
+    padding:0;
+	list-style: none;
+}
+a {
+	text-decoration: none;
+}
+a,
+a:link {
+	color: #fff;
+    text-decoration: none
+}
+a:focus {
+    outline: none
+}
+img {
+	display: block;
+}
+.yby_table{
+	width: 100%;
+	border-collapse: collapse;
+}
+.yby_table th {
+	font-size: 14px;
+	font-weight: normal;
+	color: #fff;
+}
+.yby_table td{
+	text-align: center;
+}
+.yby_table td.textleft{
+	text-align: left;
+}
+.yby_table td.textright{
+	text-align: right;
+}
+.ivass_table tr.shadow{
+	box-shadow: 0 0 15px 0 rgba(62,105,212,.6) inset;
+}
+.ivass_table th {
+	border: 1px solid #425173;
+	padding: 10px 0;
+}
+.ivass_table td {
+	border: 1px solid #425173;
+	padding: 5px 0;
+}
+.limit {
+	word-break: break-all;
+	padding: 0 2px;
+	text-align: center;
+}
+.overflow{
+	display: inline-block;
+	max-width: 350px;
+	overflow: hidden;/*超出部分隐藏*/
+	text-overflow:ellipsis;/* 超出部分显示省略号 */
+	white-space: nowrap;/*规定段落中的文本不进行换行 */
+}
+.flex{
+	display: flex;
+	display: -webkit-flex;
+	justify-content: flex-start;
+	align-items: center;
+}
+.flex-around {
+	justify-content: space-around;
+}
+.flex-between {
+	justify-content: space-between;
+}
+.flex-end {
+	justify-content: flex-end;
+}
+.flex-column {
+	flex-direction: column;
+}
+.flex-wrap {
+	flex-wrap: wrap;
+}
+.flex > *{
+	flex: 0 0 auto;
+}
+[v-cloak]{
+	display: none;
+}
+.red {
+	color: #ef0a0a;
+}
+.green {
+	color: #00FF00;
+}
+.charts{
+	width: 100%;
+	height: 100%;
+}
+.scroll {
+	overflow-x: auto;
+	overflow-y: auto;
+}
+.scroll::-webkit-scrollbar { /*滚动条整体样式*/
+    width: 4px; /*高宽分别对应横竖滚动条的尺寸*/
+    height: 8px;
+}
+.scroll::-webkit-scrollbar-thumb { /*滚动条里面小方块*/
+    border-radius: 5px;
+    -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+    background: rgba(74,107,179,1);
+}
+.scroll::-webkit-scrollbar-track { /*滚动条里面轨道*/
+    -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+    border-radius: 0;
+    background: rgba(0,0,0,0.1);
+    cursor: pointer;
+}
+.anchorBL{display:none;}

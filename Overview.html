@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="keywords" content="your keywords">
+		<meta name="description" content="your description">
+		<meta name="author" content="author,email address">
+		<meta name="robots" content="index,follow">
+		<!-- 浏览器的渲染模式，建议引入 -->
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+		<meta name="renderer" content="ie-stand">
+		<title>IVASS</title>
+		<!--[if lt IE 9]>
+		  <script src="//cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+		  <script src="//cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+		  <script type="text/javascript" src="js/nwmatcher.js"></script>
+  		  <script type="text/javascript" src="js/selectivizr-min.js"></script>
+		<![endif]-->
+	</head>
+	<link rel="stylesheet" type="text/css" href="css/element-ui-2.12.0.css" />
+	<link rel="stylesheet" type="text/css" href="css/reset.css" />
+	<link rel="stylesheet" type="text/css" href="css/style.css" />
+	<body>
+		<div id="app" v-cloak v-loading="loading" element-loading-background="#1a2233" style="min-height: 100vh;">
+			<!-- 头 -->
+			<headtop ></headtop>
+			<!-- 内容 -->
+			<div class="main">
+				<!--part1-->
+				<div class="bg" style="margin-bottom: 20px;">
+					<!--标题-->
+					<h2 class="tit"><i><b></b></i><span>资产概要</span></h2>
+					<!--内容-->
+					<div style="">
+						<!--统计-->
+						<div class="asset-stat flex flex-between">
+							<div class="box-bg">
+								<span><i></i>企业资产总数</span>
+								<b>{{overview.assert_statis.com_assert}}</b>
+							</div>
+							<div class="box-bg">
+								<span><i></i>已知资产总数</span>
+								<b>{{overview.assert_statis.known_assert}}</b>
+							</div>
+							<div class="box-bg">
+								<span><i></i>今日新增资产总数</span>
+								<b>{{overview.assert_statis.today_assert}}</b>
+							</div>
+							<div class="box-bg">
+								<span><i></i>重要资产数</span>
+								<b>{{overview.assert_statis.import_assert}}</b>
+							</div>
+						</div>
+						<!--图表-->
+						<div class="asset-stat-chart flex flex-between">
+							<div class="box-bg">
+								<div class="charts" id="asset-change"></div>
+							</div>
+							<div class="box-bg">
+								<div class="charts" id="asset-importance"></div>
+							</div>
+							<div class="box-bg">
+								<div class="charts" id="asset-type"></div>
+							</div>
+							<div class="box-bg">
+								<div class="charts" id="asset-vendor"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!--part2-->
+				<div class="bg" style="margin-bottom: 20px;">
+					<!--标题-->
+					<div class="flex flex-between" style="margin-bottom: 50px;">
+						<h2 class="tit"><i><b></b></i><span>企业</span></h2>
+						<div class="flex">
+							<div v-if="overview.area_msg.length>0" class="btn" @click="new_area">添加企业区域</div>
+							<div class="btn" @click="new_company">查看企业详情</div>
+						</div>
+					</div>
+					<!--内容-->
+					<div>
+						<!--统计-->
+						<div class="company-stat flex flex-between">
+							<div class="box-bg">
+								<span><i></i>企业资产总数</span>
+								<b>{{overview.company_msg.company_assert}}</b>
+							</div>
+							<div class="box-bg">
+								<span><i></i>已知资产总数</span>
+								<b>{{overview.company_msg.com_assert_num}}</b>
+							</div>
+							<div class="box-bg">
+								<span><i></i>企业年产值(千万)</span>
+								<b>{{overview.company_msg.value_year}}</b>
+							</div>
+							<div class="box-bg" style="cursor: pointer;" @click="get_probe_task">
+								<span>探测任务</span>
+								<div style="flex: 1 1 auto;padding-left: 10px;">
+									<el-progress :text-inside="true" :stroke-width="20" :percentage="company_stat_task_percent"></el-progress>
+								</div>
+							</div>
+							<div class="box-bg">
+								<span>企业重要性</span>
+								<div style="flex: 1 1 auto;padding-left: 10px;">
+									<el-rate disabled :colors="['#ff5353','#ff5353','#ff5353']" v-model="overview.company_msg.company_importance"></el-rate>
+								</div>
+							</div>
+						</div>
+						<div v-if="overview.area_msg.length == 0">
+							<!--表格-->
+							<div class="flex flex-between" style="margin-bottom: 15px;">
+								<b></b>
+								<div class="flex">
+									<div class="btn blue" @click="one_add_company">单条添加资产</div>
+									<div class="btn blue" @click="batch_add_company">资产批量导入</div>
+									<div class="btn blue" @click="probe_net">资产网络探测</div>
+								</div>
+							</div>
+							<div class="box-bg" style="padding: 20px;">
+								<table class="yby_table ivass_table">
+									<tr class="shadow">
+										<th>资产名</th>
+										<th width="150">ip</th>
+										<th width="150">Mac</th>
+										<th>厂商</th>
+										<th>产品名称</th>
+										<th>资产型号</th>
+										<th>产品类型</th>
+										<th>固件版本</th>
+										<th width="200px">资产重要性</th>
+										<th>操作</th>
+									</tr>
+									<tr v-if="overview.company_msg.assert_list.length==0">
+										<td colspan="10">
+											<h2>
+												<center>暂无资产</center>
+											</h2>
+										</td>
+									</tr>
+									<tr v-for="(item,index) in overview.company_msg.assert_list" :key="item.id">
+										<td><input class="table-input" type="text" v-model="item.assert_name"></td>
+										<td><input class="table-input" type="text" v-model="item.assert_ip"></td>
+										<td><input class="table-input" type="text" v-model="item.assert_mac"></td>
+										<td>
+											{{item.assert_vendor}}
+										</td>
+										<td>
+											{{item.product_name}}
+										</td>
+										<td>
+											{{item.assert_num}}
+										</td>
+										<td>
+											{{item.assert_type}}
+										</td>
+										<td>
+											{{item.assert_firmware_version}}
+										</td>
+										<td>
+											<el-rate :colors="['#ff5353','#ff5353','#ff5353']" v-model="item.assert_importance"></el-rate>
+										</td>
+										<td width="200px">
+											<div class="flex flex-around">
+												<div class="table-btn" @click="alert_company_asset(item)">编辑</div>
+												<div class="table-btn" @click="newassert(item)">保存</div>
+												<div class="table-btn" @click="dele_company_asset(index)">删除</div>
+											</div>
+										</td>
+									</tr>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!--part3-->
+				<div v-if="overview.area_msg.length>0" class="bg" style="margin-bottom: 20px;">
+					<!--标题-->
+					<h2 class="tit"><i><b></b></i><span>区域</span></h2>
+					<!--内容-->
+					<div v-for="(item,index) in overview.area_msg" :key="item.id">
+						<div class="box-bg" style="padding:20px">
+							<!--副标题-->
+							<div class="flex flex-between" style="margin-bottom: 50px;">
+								<h3>{{item.area_name}}</h3>
+								<div class="flex">
+									<div class="btn" @click="look_area(item.area_id)">查看区域详情</div>
+									<div class="btn" @click="dele_area(item.area_id)">删除区域</div>
+								</div>
+							</div>
+							<!--统计-->
+							<div class="area-stat flex flex-between">
+								<div class="box-bg">
+									<span><i></i>当前区域已知资产数 </span>
+									<b>{{item.assert_num}}</b>
+								</div>
+								<div class="box-bg">
+									<span><i></i>当前区域重要资产数 </span>
+									<b>{{item.import_num}}</b>
+								</div>
+								<div class="box-bg">
+									<span><i></i>当前区域高危资产数 </span>
+									<b>{{item.high_num}}</b>
+								</div>
+							</div>
+							<!--表格-->
+							<div class="flex flex-end" style="margin-bottom: 15px;">
+								<div class="flex">
+									<!-- 进度 -->
+									<div class="btn blue flex flex-between" style="cursor: pointer;width: 300px;" @click="get_probe_task">
+										<span>探测任务</span>
+										<div style="flex: 1 1 auto;padding-left: 10px;">
+											<el-progress :text-inside="true" :stroke-width="20" :percentage="area_scoket[item.area_unq_id]"></el-progress>
+										</div>
+									</div>
+									<div class="btn blue" @click="one_add_area(item.area_id)">单条添加资产</div>
+									<div class="btn blue" @click="batch_add_area(item.area_id)">资产批量导入</div>
+									<div class="btn blue" @click="probe_net_area(item.area_id)">资产网络探测</div>
+								</div>
+							</div>
+							<table class="yby_table ivass_table">
+								<tr class="shadow">
+									<th>资产名</th>
+									<th width="150">ip</th>
+									<th width="150">Mac</th>
+									<th>厂商</th>
+									<th>产品名称</th>
+									<th>资产型号</th>
+									<th>产品类型</th>
+									<th>固件版本</th>
+									<th width="200px">资产重要性</th>
+									<th>操作</th>
+								</tr>
+								<tr v-show="item.assert_list==0">
+									<td colspan="10">
+										<h2>
+											<center>暂无资产</center>
+										</h2>
+									</td>
+								</tr>
+								<tr v-for="(ite,inde) in item.assert_list" :key="ite.id">
+									<td><input class="table-input" type="text" v-model="ite.assert_name"></td>
+									<td><input class="table-input" type="text" v-model="ite.assert_ip"></td>
+									<td><input class="table-input" type="text" v-model="ite.assert_mac"></td>
+									<td>
+										{{ite.assert_vendor}}
+									</td>
+									<td>
+										{{ite.product_name}}
+									</td>
+									<td>
+										{{ite.assert_num}}
+									</td>
+									<td>
+										{{ite.assert_type}}
+									</td>
+									<td>
+										{{ite.assert_firmware_version}}
+									</td>
+									<td>
+										<el-rate :colors="['#ff5353','#ff5353','#ff5353']" v-model="ite.assert_importance"></el-rate>
+									</td>
+									<td width="200px">
+										<div class="flex flex-around">
+											<div class="table-btn" @click="alert_area_asset(ite,item.area_id)">编辑</div>
+											<div class="table-btn" @click="newassert(ite)">保存</div>
+											<div class="table-btn" @click="dele_area_asset(index,inde)">删除</div>
+										</div>
+									</td>
+								</tr>
+							</table>
+						</div>
+					</div>
+				</div>
+				<!--part4-->
+				<div class="bg" style="margin-bottom: 20px;">
+					<!--标题-->
+					<h2 class="tit"><i><b></b></i><span>风险概要</span></h2>
+					<!--内容-->
+					<div>
+						<!--图表-->
+						<div class="risk-chart flex flex-between" style="margin-bottom: 15px;">
+							<div class="box-bg">
+								<div class="charts" id="company-risk"></div>
+							</div>
+							<div class="box-bg">
+								<div class="charts" id="loophole-type"></div>
+							</div>
+							<div class="box-bg">
+								<div class="charts" id="loophole-warn"></div>
+							</div>
+							<div class="box-bg">
+								<div class="charts" id="loophole-vendor"></div>
+							</div>
+						</div>
+						<!--表格-->
+						<div class="box-bg" style="padding: 20px;">
+							<table class="yby_table ivass_table">
+								<tr class="shadow">
+									<th>资产名称</th>
+									<th>资产ip</th>
+									<th>资产重要性</th>
+									<th>涉及的漏洞</th>
+								</tr>
+								<tr v-show="overview.risk_statis.assert_list.length==0">
+									<td colspan="4">
+										<h2>
+											<center>暂无数据</center>
+										</h2>
+									</td>
+								</tr>
+								<tr v-for="item in overview.risk_statis.assert_list" :key="item.id">
+									<td>{{item.assert_name}}</td>
+									<td>{{item.assert_ip}}</td>
+									<td>{{item.assert_importance}}</td>
+									<td width="200px">
+										<div class="flex flex-around">
+											<div class="table-btn" @click="openloophole(item.assert_id)">漏洞详情</div>
+										</div>
+									</td>
+								</tr>
+							</table>
+						</div>
+					</div>
+				</div>
+				<!--part5-->
+				<div class="bg">
+					<!--标题-->
+					<h2 class="tit"><i><b></b></i><span>风险概要</span></h2>
+					<!-- 内容 -->
+					<div class="box-bg" style="padding: 20px;">
+						<h3 style="margin-bottom: 20px;">评估方案</h3>
+						<ul class="plan-box flex flex-wrap flex-between" style="margin-bottom: 20px;">
+							<li v-for="item in planList" :key="item.id" @click="newplan(item)">{{item.name}}</li>
+						</ul>
+						<table v-show="assert_planList.length > 0" class="yby_table ivass_table">
+							<tr class="shadow">
+								<th>评估方案名称</th>
+								<th>评估企业名称</th>
+								<th>评估区域名称</th>
+								<th width="50">启动</th>
+								<th width="200">进度</th>
+								<th width="100">评估资产详情</th>
+								<th >操作</th>
+							</tr>
+							<tr v-for="item in assert_planList" :key="item.id">
+								<td>{{item.assessment_name}}</td>
+								<td>{{item.company}}</td>
+								<td>{{item.area}}</td>
+								<td>
+									<el-button @click="startplan(item.assessment_uniq_id)" :disabled="item.progress>0" size="mini" type="warning" icon="el-icon-video-play" circle></el-button>
+								</td>
+								<td>
+									<el-progress v-show="item.progress!=''" :text-inside="true" :stroke-width="20" :percentage="item.progress"></el-progress>
+								</td>
+								<td>
+									<el-button @click="assetplan_info(item.assessment_uniq_id)" size="mini" icon="el-icon-tickets" circle></el-button>
+								</td>
+								<td>
+									<div v-if="item.path!=''" class="flex flex-around">
+										<a :href="item.path+'.pdf'" target="_blank"><div class="table-btn">预览</div></a>
+										<a :href="item.path+'.docx'" target="_self" download ><div class="table-btn">下载</div></a>
+									</div>
+								</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</div>
+			<!-- 弹窗&添加区域 -->
+			<addarea ref="addarea" @area="savearea"></addarea>
+			<!-- 弹窗&资产批量导入 -->
+			<batch ref="batch" @complete="fileClose"></batch>
+			<!-- 弹窗&网络探测 -->
+			<probe ref="probe" @complete="probeClose"></probe>
+			<!-- 弹窗&探测任务 -->
+			<prodetask ref="prodetask" @handclose="prodetaskClose"></prodetask>
+			<!-- 弹窗&资产单条添加 -->
+			<addassert ref="addassert" @newassert="newassert"></addassert>
+			<!-- 弹窗&评估方案 -->
+			<el-dialog title="评估方案" :visible.sync="planPopup" width="80%">
+				<div>
+					<div>{{planinfo.msg}}</div>
+					<div class="plan-info flex flex-between">
+						<div class="box-bg">
+							<span><i></i>企业资产总数</span>
+							<b>{{planinfo.total}}</b>
+						</div>
+						<div class="box-bg">
+							<span><i></i>已知资产总数</span>
+							<b>{{planinfo.already_assert_count}}</b>
+						</div>
+						<div class="box-bg">
+							<span><i></i>参与评估资产</span>
+							<b>{{planinfo.join_env_assert_count}}</b>
+						</div>
+						<div class="box-bg">
+							<span><i></i>参与评估重要资产</span>
+							<b>{{planinfo.importance_count}}</b>
+						</div>
+						<div class="box-bg">
+							<span><i></i>评估完整度</span>
+							<b>{{planinfo.progress}}%</b>
+						</div>
+					</div>
+					<table class="yby_table ivass_table">
+						<tr class="shadow">
+							<th>选取</th>
+							<th>资产名</th>
+							<th>区域</th>
+							<th>ip</th>
+							<th>Mac</th>
+							<th>厂商</th>
+							<th>产品名称</th>
+							<th>资产型号</th>
+							<th>产品类型</th>
+							<th>固件版本</th>
+							<th width="200px">资产重要性</th>
+						</tr>
+						<tr v-show="planinfo.assert_list.length==0">
+							<td colspan="11">
+								<h2>
+									<center>暂无资产</center>
+								</h2>
+							</td>
+						</tr>
+						<tr v-for="item in planinfo.assert_list" :key="item.id">
+							<td>
+								<el-checkbox-group v-model="assert_checkList">
+									<el-checkbox :label="item.assert_id+'_'+item.assert_importance" :key="item.assert_id">{{""}}</el-checkbox>
+								  </el-checkbox-group>
+							</td>
+							<td>{{item.assert_name}}</td>
+							<td>{{item.area}}</td>
+							<td>{{item.assert_ip}}</td>
+							<td>{{item.assert_mac}}</td>
+							<td>{{item.assert_vendor}}</td>
+							<td>{{item.product_name}}</td>
+							<td>{{item.assert_num}}</td>
+							<td>{{item.assert_type}}</td>
+							<td>{{item.assert_firmware_version}}</td>
+							<td><el-rate disabled :colors="['#ff5353','#ff5353','#ff5353']" v-model="item.assert_importance"></el-rate></td>
+						</tr>
+					</table>
+				</div>
+				<span slot="footer" class="dialog-footer">
+					<el-button v-if="planinfo.assert_list.length > 0" type="primary" @click="save_plan">确 定</el-button>
+				</span>
+			</el-dialog>
+			<!-- 弹窗&参与评估资产 -->
+			<el-dialog title="参与评估资产详情" :visible.sync="assetPlanPopup" width="80%">
+				<div>
+					<table class="yby_table ivass_table">
+						<tr class="shadow">
+							<th>资产名</th>
+							<th>区域</th>
+							<th>ip</th>
+							<th>Mac</th>
+							<th>厂商</th>
+							<th>产品名称</th>
+							<th>资产型号</th>
+							<th>产品类型</th>
+							<th>固件版本</th>
+							<th width="200px">资产重要性</th>
+						</tr>
+						<tr v-show="assetPlanlist.length==0">
+							<td colspan="10">
+								<h2>
+									<center>暂无漏洞</center>
+								</h2>
+							</td>
+						</tr>
+						<tr v-for="item in assetPlanlist" :key="item.id">
+							<td>{{item.assert_name}}</td>
+							<td>{{item.area}}</td>
+							<td>{{item.assert_ip}}</td>
+							<td>{{item.assert_mac}}</td>
+							<td>{{item.assert_vendor}}</td>
+							<td>{{item.product_name}}</td>
+							<td>{{item.assert_num}}</td>
+							<td>{{item.assert_type}}</td>
+							<td>{{item.assert_firmware_version}}</td>
+							<td><el-rate disabled :colors="['#ff5353','#ff5353','#ff5353']" v-model="item.assert_importance"></el-rate></td>
+						</tr>
+					</table>
+				</div>
+			</el-dialog>
+			<!-- 弹窗&漏洞详情 -->
+			<el-dialog title="漏洞详情" :visible.sync="loopholePopup" width="60%">
+				<div>
+					<table class="yby_table ivass_table">
+						<tr class="shadow">
+							<th>cnvd编号</th>
+							<th>公开日期</th>
+							<th>危险等级</th>
+							<th width="400">漏洞描述</th>
+							<th>漏洞类型</th>
+						</tr>
+						<tr v-show="loopholeList.length==0">
+							<td colspan="5">
+								<h2>
+									<center>暂无漏洞</center>
+								</h2>
+							</td>
+						</tr>
+						<tr v-for="item in loopholeList" :key="item.id">
+							<td>{{item.vuln_id}}</td>
+							<td>{{item.open_time}}</td>
+							<td>{{item.my_harm_level}}</td>
+							<td class="textleft">{{item.leak_desc}}</td>
+							<td>{{item.leak_type}}</td>
+						</tr>
+					</table>
+				</div>
+			</el-dialog>
+			<!-- 弹窗&企业详情 -->
+			<el-dialog title="企业详情" :visible.sync="companyPopup" width="60%">
+				<div>
+					<table class="yby_table">
+						<tr>
+							<td colspan="2">
+								<div class="flex input-box">
+									<span>企业名称</span>
+									<input v-model="company.company_name" style="width: 60%;flex: 0 0 auto;" class="input-bg" type="text" />
+								</div>
+
+							</td>
+							<td>
+								<div class="flex">
+									<span>企业重要性</span>
+									<el-rate :colors="['#ff5353','#ff5353','#ff5353']" v-model="company.company_importance"></el-rate>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td colspan="3">
+								<div class="flex input-box">
+									<span>企业描述</span>
+									<textarea v-model="company.company_desc" class="input-bg" rows="8" cols=""></textarea>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<div class="flex input-box">
+									<span>年产值（千万）</span>
+									<input v-model="company.value_year" class="input-bg" type="text" maxlength="10" />
+								</div>
+							</td>
+							<td>
+								<div class="flex input-box">
+									<span>人员规模</span>
+									<input v-model="company.people_count" class="input-bg" type="text" maxlength="10" />
+								</div>
+
+							</td>
+							<td>
+								<div class="flex input-box">
+									<span>企业类型</span>
+									<div style="flex: 1 1 auto;">
+										<el-select v-model="company.company_type" placeholder="请选择">
+											<el-option v-for="item in company_type_list" :key="item.id" :label="item" :value="item">
+											</el-option>
+										</el-select>
+									</div>
+								</div>
+
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<div class="flex input-box">
+									<span>企业联系人</span>
+									<input v-model="company.company_contact" class="input-bg" type="text" />
+								</div>
+
+							</td>
+							<td>
+								<div class="flex input-box">
+									<span>联系人电话</span>
+									<input v-model="company.company_contact_phone" class="input-bg" type="text" />
+								</div>
+
+							</td>
+							<td>
+								<div class="flex input-box">
+									<span>企业资产总数</span>
+									<input v-model="company.company_assert" class="input-bg" type="text" maxlength="10" />
+								</div>
+
+							</td>
+						</tr>
+					</table>
+				</div>
+				<span slot="footer" class="dialog-footer">
+					<el-button type="primary" @click="save_company">确 定</el-button>
+				</span>
+			</el-dialog>
+		</div>
+	</body>
+</html>
+<script src="js/jquery-3.1.1.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/init.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/urll.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/vue.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/echarts.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/element-ui-2.12.0.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/chart.js" type="text/javascript" charset="utf-8"></script>
+<script src="compoment/headTop.js" type="text/javascript" charset="utf-8"></script>
+<script src="compoment/addarea.js" type="text/javascript" charset="utf-8"></script>
+<script src="compoment/batch.js" type="text/javascript" charset="utf-8"></script>
+<script src="compoment/probe.js" type="text/javascript" charset="utf-8"></script>
+<script src="compoment/prodetask.js" type="text/javascript" charset="utf-8"></script>
+<script src="compoment/addassert.js" type="text/javascript" charset="utf-8"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+<script type="text/javascript">
+	var app = new Vue({
+		el: "#app",
+		data: {
+			loading: false,
+			name: "张三",
+			company_id: GetUrlParam("company_id"),
+			//方案
+			planPopup:false,
+			planList: [],
+			planinfo:{
+				already_assert_count:0,
+				importance_count:0,
+				join_env_assert_count:0,
+				progress:0,
+				total:3,
+				msg:"",
+				assert_list:[],
+			},
+			assert_checkList:[],
+			assert_planList:[],
+			plan_scoket:"",
+			//参与评估资产
+			assetPlanPopup:false,
+			assetPlanlist:[],
+			//漏洞详情
+			loopholePopup: false,
+			loopholeList: [],
+			//企业详情
+			companyPopup: false,
+			company: {
+				company_id: "",
+				company_name: "",
+				value_year: "",
+				people_count: "",
+				company_type: "",
+				company_contact: "",
+				company_contact_phone: "",
+				company_assert: "",
+				company_importance: "1",
+				company_desc: "",
+			},
+			//概览数据
+			overview: {
+				"assert_statis": {
+					"com_assert": "0",
+					"known_assert": "0",
+					"today_assert": "0",
+					"import_assert": "0",
+					"assert_change": {
+						'xdata': [],
+						'data': []
+					},
+					"assert_distribute": {
+						'xdata': [],
+						'data': []
+					},
+					"assert_type": [],
+					"assert_ventor": [],
+				},
+				"company_msg": {
+					"company_assert": "0",
+					"com_assert_num": "0",
+					"value_year": "0",
+					"com_import_num": "0",
+					"company_importance": "0",
+					"task_percent": "0",
+					"assert_list": [],
+				},
+				"area_msg": [],
+				"risk_statis": {
+					"risk_score": {
+						name: "风险评分",
+						value: 0
+					},
+					"leak_distribute": {
+						'xdata': [],
+						'data': []
+					},
+					"leak_threaten": [],
+					"leak_num": {
+						'xdata': [],
+						'data': []
+					},
+					"assert_list": [],
+				},
+			},
+			areaListScreen: [],
+			//socket
+			probe_scoket: "",
+			company_stat_task_percent: "0",
+			area_scoket: "",
+			task_scoket:"",
+			//筛选列表
+			company_type_list: [],
+		},
+		watch:{
+			assert_checkList(val){
+				var that = this
+				that.$set(that.planinfo,"join_env_assert_count",val.length)
+				var count = 0
+				for(var i = 0;i<val.length;i++){
+					if(val[i].slice(val[i].indexOf("_")+1) > 2){
+						count++
+					}
+				}
+				that.$set(that.planinfo,"importance_count",count)
+				that.$set(that.planinfo,"progress",Math.floor((val.length/that.planinfo.total).toFixed(3)*100))
+			},
+			company_stat_task_percent(val){
+				if(val=="100"){
+					this.get_overview()
+				}
+			}
+		},
+		created() {
+			var that = this
+			setTimeout(function() {
+				that.loading = false
+			}, 1000);
+			if(getCookie("ivass-name")!=""){
+				//企业类型
+				$.ajax({
+					type: "get",
+					url: urll + "/req/comtype_list",
+					async: true,
+					success: function(res) {
+						if (res.res_code == 0) {
+							that.company_type_list = res.res_array
+						} else {
+							that.$message.error(res.res_msg)
+						}
+					},
+					error: function() {
+						that.$message.error("系统错误请联系管理员")
+					}
+				})
+				//获取评估方案
+				$.ajax({
+					type: "get",
+					url: urll + "/req/get_evaluation?company_id="+that.company_id,
+					async: true,
+					success: function(res) {
+						if (res.res_code == 0) {
+							that.planList = res.res_array
+						} else {
+							that.$message.error(res.res_msg)
+						}
+					},
+					error: function() {
+						that.$message.error("系统错误请联系管理员")
+					}
+				})
+			}
+			
+		},
+		mounted() {
+			var that = this
+			if(getCookie("ivass-name")!=""){
+				$.ajax({
+					type: "get",
+					url: urll + "/req/overview_assert_statis?company_id=" + that.company_id,
+					async: true,
+					success: function(res) {
+						if (res.res_code == 0) {
+							that.$set(that.overview,"assert_statis",res.res_obj.assert_statis)
+							that.$nextTick(function(){
+								line_chart($("#asset-change")[0], that.overview.assert_statis.assert_change, "资产变化趋势")
+								bar_chart($("#asset-importance")[0], that.overview.assert_statis.assert_distribute, "资产重要性分布")
+								pie_chart($("#asset-type")[0], that.overview.assert_statis.assert_type, "产品类型分布")
+								pie_chart($("#asset-vendor")[0], that.overview.assert_statis.assert_ventor, "资产厂商分布")
+							})
+						} else {
+							that.$message.error(res.res_msg)
+						}
+					},
+					error: function() {
+						that.$message.error("系统错误请联系管理员")
+					}
+				})
+				$.ajax({
+					type: "get",
+					url: urll + "/req/overview_company_msg?company_id=" + that.company_id,
+					async: true,
+					success: function(res) {
+						if (res.res_code == 0) {
+							that.$set(that.overview,"company_msg",res.res_obj.company_msg)
+						} else {
+							that.$message.error(res.res_msg)
+						}
+					},
+					error: function() {
+						that.$message.error("系统错误请联系管理员")
+					}
+				})
+				$.ajax({
+					type: "get",
+					url: urll + "/req/overview_area_msg?company_id=" + that.company_id,
+					async: true,
+					success: function(res) {
+						if (res.res_code == 0) {
+							that.$set(that.overview,"area_msg",res.res_obj.area_msg)
+						} else {
+							that.$message.error(res.res_msg)
+						}
+					},
+					error: function() {
+						that.$message.error("系统错误请联系管理员")
+					}
+				})
+				$.ajax({
+					type: "get",
+					url: urll + "/req/overview_risk_statis?company_id=" + that.company_id,
+					async: true,
+					success: function(res) {
+						if (res.res_code == 0) {
+							that.$set(that.overview,"risk_statis",res.res_obj.statis_risk)
+							that.$nextTick(function(){
+								create_dashboard($("#company-risk")[0], that.overview.risk_statis.risk_score, "企业风险评分")
+								bar_chart($("#loophole-type")[0], that.overview.risk_statis.leak_distribute, "漏洞类型分布")
+								pie_chart($("#loophole-warn")[0], that.overview.risk_statis.leak_threaten, "漏洞威胁分布")
+								line_chart($("#loophole-vendor")[0], that.overview.risk_statis.leak_num, "漏洞数量变化趋势", ["#e6bc13"])
+							})
+						} else {
+							that.$message.error(res.res_msg)
+						}
+					},
+					error: function() {
+						that.$message.error("系统错误请联系管理员")
+					}
+				})
+			}
+			if(that.probe_scoket==""){
+				that.probe_scoket = new WebSocket(urllws + '/req/get_progress');
+				that.probe_scoket.onopen=function (event) {
+				    that.probe_scoket.send(that.company_id)
+				}
+				that.probe_scoket.onmessage = function (event) {
+					that.probe_scoket.send(that.company_id)
+					that.company_stat_task_percent = JSON.parse(event.data).company
+					that.area_scoket = JSON.parse(event.data).area || {}
+				};
+			}
+			//方案
+			if(that.plan_scoket==""){
+				that.plan_scoket = new WebSocket(urllws + '/req/get_all_assessment');
+				that.plan_scoket.onopen=function (event) {
+				    that.plan_scoket.send(that.company_id)
+				}
+				that.plan_scoket.onmessage = function(event) {
+					that.plan_scoket.send(that.company_id)
+					that.assert_planList = JSON.parse(event.data)
+				};
+			}
+		},
+		methods: {
+			//评估资产详情
+			assetplan_info(assessment_uniq_id){
+				var that = this
+				$.ajax({
+					type: "get",
+					url: urll + "/req/report_assert?assessment_uniq_id="+assessment_uniq_id,
+					async: true,
+					success: function(res) {
+						if (res.res_code == 0) {
+							that.assetPlanlist = res.res_array
+							that.assetPlanPopup = true
+						} else {
+							that.$message.error(res.res_msg)
+						}
+					},
+					error: function() {
+						that.$message.error("系统错误请联系管理员")
+					}
+				})
+			},
+			//开始评估
+			startplan(assessment_uniq_id){
+				var that = this
+				var data = {
+					company_id:that.company_id,
+					assessment_uniq_id:assessment_uniq_id
+				}
+				$.ajax({
+					type: "post",
+					url: urll + "/req/start_report",
+					async: true,
+					data:data,
+					success: function(res) {
+						if (res.res_code == 0) {
+							that.$message.success(res.res_msg)
+						} else {
+							that.$message.error(res.res_msg)
+						}
+					},
+					error: function() {
+						that.$message.error("系统错误请联系管理员")
+					}
+				})
+			},
+			//打开评估方案配置
+			newplan(item){
+				var that = this
+				$.ajax({
+					type: "post",
+					url: urll + "/req/assessment",
+					async: true,
+					data:item,
+					success: function(res) {
+						if (res.res_code == 0) {
+							that.planinfo = res.res_obj
+							that.assert_checkList = []
+							for(var i = 0 ;i < res.res_obj.assert_list.length;i++){
+								let item = res.res_obj.assert_list[i].assert_id+'_'+res.res_obj.assert_list[i].assert_importance
+								that.assert_checkList.push(item)
+							}
+							that.planPopup = true
+						} else {
+							that.$message.error(res.res_msg)
+						}
+					},
+					error: function() {
+						that.$message.error("系统错误请联系管理员")
+					}
+				})
+			},
+			//保存评估方案资产
+			save_plan(){
+				var that = this
+				var data = {
+					company_id:that.company_id,
+					assert_list:JSON.stringify(that.assert_checkList),
+				}
+				$.ajax({
+					type: "post",
+					url: urll + "/req/create_assessment",
+					async: true,
+					data:data,
+					success: function(res) {
+						if (res.res_code == 0) {
+							that.$message.success(res.res_msg)
+							that.planPopup = false
+						} else {
+							that.$message.error(res.res_msg)
+						}
+					},
+					error: function() {
+						that.$message.error("系统错误请联系管理员")
+					}
+				})
+			},
+			//获取评估数据
+			get_overview() {
+				var that = this
+				$.ajax({
+					type: "get",
+					url: urll + "/req/overview_assert_statis?company_id=" + that.company_id,
+					async: true,
+					success: function(res) {
+						if (res.res_code == 0) {
+							that.$set(that.overview,"assert_statis",res.res_obj.assert_statis)
+							that.$nextTick(function(){
+								line_chart($("#asset-change")[0], that.overview.assert_statis.assert_change, "资产变化趋势")
+								bar_chart($("#asset-importance")[0], that.overview.assert_statis.assert_distribute, "资产重要性分布")
+								pie_chart($("#asset-type")[0], that.overview.assert_statis.assert_type, "产品类型分布")
+								pie_chart($("#asset-vendor")[0], that.overview.assert_statis.assert_ventor, "资产厂商分布")
+							})
+						} else {
+							that.$message.error(res.res_msg)
+						}
+					},
+					error: function() {
+						that.$message.error("系统错误请联系管理员")
+					}
+				})
+				$.ajax({
+					type: "get",
+					url: urll + "/req/overview_company_msg?company_id=" + that.company_id,
+					async: true,
+					success: function(res) {
+						if (res.res_code == 0) {
+							that.$set(that.overview,"company_msg",res.res_obj.company_msg)
+						} else {
+							that.$message.error(res.res_msg)
+						}
+					},
+					error: function() {
+						that.$message.error("系统错误请联系管理员")
+					}
+				})
+				$.ajax({
+					type: "get",
+					url: urll + "/req/overview_area_msg?company_id=" + that.company_id,
+					async: true,
+					success: function(res) {
+						if (res.res_code == 0) {
+							that.$set(that.overview,"area_msg",res.res_obj.area_msg)
+						} else {
+							that.$message.error(res.res_msg)
+						}
+					},
+					error: function() {
+						that.$message.error("系统错误请联系管理员")
+					}
+				})
+				$.ajax({
+					type: "get",
+					url: urll + "/req/overview_risk_statis?company_id=" + that.company_id,
+					async: true,
+					success: function(res) {
+						if (res.res_code == 0) {
+							that.$set(that.overview,"risk_statis",res.res_obj.statis_risk)
+							that.$nextTick(function(){
+								create_dashboard($("#company-risk")[0], that.overview.risk_statis.risk_score, "企业风险评分")
+								bar_chart($("#loophole-type")[0], that.overview.risk_statis.leak_distribute, "漏洞类型分布")
+								pie_chart($("#loophole-warn")[0], that.overview.risk_statis.leak_threaten, "漏洞威胁分布")
+								line_chart($("#loophole-vendor")[0], that.overview.risk_statis.leak_num, "漏洞数量变化趋势", ["#e6bc13"])
+							})
+						} else {
+							that.$message.error(res.res_msg)
+						}
+					},
+					error: function() {
+						that.$message.error("系统错误请联系管理员")
+					}
+				})
+			},
+			//添加企业
+			new_company() {
+				var that = this
+				$.ajax({
+					type: "get",
+					url: urll + "/req/query_company?company_id=" + that.company_id,
+					async: true,
+					success: function(res) {
+						if (res.res_code == 0) {
+							that.company = res.res_obj
+							that.companyPopup = true
+						} else {
+							that.$message.error(res.res_msg)
+						}
+					},
+					error: function() {
+						that.$message.error("系统错误请联系管理员")
+					}
+				})
+			},
+			//保存企业
+			save_company() {
+				var that = this
+				if (that.company.company_name == "") {
+					that.$message.error("企业名称不能为空！")
+				} else if (that.company.value_year == "") {
+					that.$message.error("年产值不能为空！")
+				} else if (that.company.people_count == "") {
+					that.$message.error("人员规模不能为空！")
+				} else if (that.company.company_type == "") {
+					that.$message.error("企业类型不能为空！")
+				} else if (that.company.company_contact == "") {
+					that.$message.error("企业联系人不能为空！")
+				} else if (that.company.company_contact_phone == "") {
+					that.$message.error("企业联系人电话不能为空！")
+				} else if (that.company.company_assert == "") {
+					that.$message.error("企业资产不能为空！")
+				} else if (that.company.company_desc == "") {
+					that.$message.error("企业描述不能为空！")
+				} else {
+					$.ajax({
+						type: "post",
+						url: urll + "/req/add_company",
+						async: true,
+						data: that.company,
+						success: function(res) {
+							if (res.res_code == 0) {
+								that.$message.success(res.res_msg)
+								that.companyPopup = false
+								that.get_overview()
+							} else {
+								that.$message.error(res.res_msg)
+							}
+						},
+						error: function() {
+							that.$message.error("系统错误请联系管理员")
+						}
+					})
+				}
+			},
+			//漏洞详情
+			openloophole(assert_id) {
+				var that = this
+				$.ajax({
+					type: "get",
+					url: urll + "/req/leak_desc?assert_id=" + assert_id,
+					async: true,
+					success: function(res) {
+						if (res.res_code == 0) {
+							that.loopholeList = res.res_array
+							that.loopholePopup = true
+						} else {
+							that.$message.error(res.res_msg)
+						}
+					},
+					error: function() {
+						that.$message.error("系统错误请联系管理员")
+					}
+				})
+			},
+			//添加区域
+			new_area() {
+				var that = this
+				that.$refs.addarea.area = {
+					company_id: that.company_id,
+					area_id: "",
+					area_name: "",
+					area_alias: "",
+					area_desc: "",
+					area_contact: "",
+					area_contact_phone: "",
+					area_importance: "1",
+				}
+				that.$refs.addarea.areaPopup = true
+			},
+			//查看区域
+			look_area(area_id) {
+				var that = this
+				$.ajax({
+					type: "get",
+					url: urll + "/req/query_area?area_id=" + area_id,
+					async: true,
+					success: function(res) {
+						if (res.res_code == 0) {
+							that.$refs.addarea.area = res.res_obj
+							that.$refs.addarea.areaPopup = true
+						} else {
+							that.$message.error(res.res_msg)
+						}
+					},
+					error: function() {
+						that.$message.error("系统错误请联系管理员")
+					}
+				})
+			},
+			//删除区域
+			dele_area(area_id) {
+				var that = this
+				that.$confirm('删除操作不可逆, 是否继续?', '提示', {
+					confirmButtonText: '确定',
+					cancelButtonText: '取消',
+					type: 'warning'
+				}).then(() => {
+					//确定
+					$.ajax({
+						type: "post",
+						url: urll + "/req/del_area?area_id=" + area_id,
+						async: true,
+						data: data,
+						success: function(res) {
+							if (res.res_code == 0) {
+								that.$message.success(res.res_msg)
+								that.get_overview()
+							} else {
+								that.$message.error(res.res_msg)
+							}
+						},
+						error: function() {
+							that.$message.error("系统错误请联系管理员")
+						}
+					})
+
+				}).catch(() => {
+					that.$message({
+						type: 'info',
+						message: '已取消删除'
+					});
+				});
+			},
+			//保存区域
+			savearea(area) {
+				var that = this
+				$.ajax({
+					type: "post",
+					url: urll + "/req/add_area",
+					async: true,
+					data: area,
+					success: function(res) {
+						if (res.res_code == 0) {
+							that.$message.success(res.res_msg)
+							that.$refs.addarea.areaPopup = false
+							//开启socket
+							if(that.probe_scoket==""){
+								that.probe_scoket = new WebSocket(urllws + '/req/get_progress');
+								that.probe_scoket.onopen=function (event) {
+								    that.probe_scoket.send(that.company_id)
+								}
+								that.probe_scoket.onmessage = function (event) {
+									that.probe_scoket.send(that.company_id)
+									that.company_stat_task_percent = JSON.parse(event.data).company
+									that.area_scoket = JSON.parse(event.data).area || {}
+								};
+							}
+							that.get_overview()
+						} else {
+							that.$message.error(res.res_msg)
+						}
+					},
+					error: function() {
+						that.$message.error("系统错误请联系管理员")
+					}
+				})
+			},
+			//获取探测任务列表
+			get_probe_task() {
+				var that = this
+				if(that.task_scoket==""){
+					that.task_scoket = new WebSocket(urllws + '/req/search_task');
+					that.task_scoket.onopen=function (event) {
+					    that.task_scoket.send(that.company_id)
+					}
+					that.task_scoket.onmessage = function(event) {
+						that.task_scoket.send(that.company_id)
+						that.$refs.prodetask.probeList = JSON.parse(event.data)
+					};
+				}
+				that.$refs.prodetask.probeTaskPopup = true
+			},
+			//关闭探测任务
+			prodetaskClose(){
+				var that = this
+				that.task_scoket.close()
+				that.task_scoket = ""
+			},
+			//删除区域单条资产
+			dele_area_asset(index, inde) {
+				var that = this
+				that.$confirm('删除操作不可逆, 是否继续?', '提示', {
+					confirmButtonText: '确定',
+					cancelButtonText: '取消',
+					type: 'warning'
+				}).then(() => {
+					//确定
+					if (that.overview.area_msg[index].assert_list[inde].assert_id == "") {
+						that.overview.area_msg[index].assert_list.splice(inde, 1)
+						that.$message.success("删除成功")
+					} else {
+						$.ajax({
+							type: "get",
+							url: urll + "/req/del_assert?assert_id=" + that.overview.area_msg[index].assert_list[inde].assert_id,
+							async: true,
+							success: function(res) {
+								if (res.res_code == 0) {
+									that.$message.success(res.res_msg)
+									that.get_overview()
+								} else {
+									that.$message.error(res.res_msg)
+								}
+							},
+							error: function() {
+								that.$message.error("系统错误请联系管理员")
+							}
+						})
+					}
+
+				}).catch(() => {
+					that.$message({
+						type: 'info',
+						message: '已取消删除'
+					});
+				});
+			},
+			//筛选列表获取
+			get_screen(callback) {
+				var that = this
+				$.ajax({
+					type: "get",
+					url: urll + "/req/assert_area_import?company_id=" + that.company_id,
+					async: true,
+					success: function(res) {
+						if (res.res_code == 0) {
+							that.areaListScreen = res.res_obj.areaListScreen
+							callback()
+						} else {
+							that.$message.error(res.res_msg)
+						}
+					},
+					error: function() {
+						that.$message.error("系统错误请联系管理员")
+					}
+				})
+			},
+			//开启探测
+			probe_net() {
+				var that = this
+				that.$refs.probe.probe = {
+					company_id: that.company_id,
+					area_id: "",
+					ip: "",
+					task_name: "",
+					task_desc: "",
+				}
+				that.get_screen(function() {
+					that.$refs.probe.areaListScreen = that.areaListScreen
+					that.$refs.probe.company_stat_company_name = that.overview.company_name
+					that.$refs.probe.probePopup = true
+				})
+			},
+			probe_net_area(area_id) {
+				var that = this
+				that.$refs.probe.probe = {
+					company_id: that.company_id,
+					area_id: area_id,
+					ip: "",
+					task_name: "",
+					task_desc: "",
+				}
+				that.get_screen(function() {
+					that.$refs.probe.areaListScreen = that.areaListScreen
+					that.$refs.probe.company_stat_company_name = that.overview.company_name
+					that.$refs.probe.probePopup = true
+				})
+			},
+			//探测设置完成
+			probeClose() {
+				var that = this
+				that.company_stat_task_percent = 0
+				//开启socket
+				if(that.probe_scoket==""){
+					that.probe_scoket = new WebSocket(urllws + '/req/get_progress');
+					that.probe_scoket.onopen=function (event) {
+					    that.probe_scoket.send(that.company_id)
+					}
+					that.probe_scoket.onmessage = function (event) {
+						that.probe_scoket.send(that.company_id)
+						that.company_stat_task_percent = JSON.parse(event.data).company
+						that.area_scoket = JSON.parse(event.data).area || {}
+					};
+				}
+
+			},
+			//批量导入完成
+			fileClose() {
+				var that = this
+				that.get_overview()
+			},
+			//批量导入
+			batch_add_company() {
+				var that = this
+				that.$refs.batch.company_id = that.company_id
+				that.$refs.batch.area_id = ""
+				that.$refs.batch.companyFilePopup = true
+			},
+			batch_add_area(area_id) {
+				var that = this
+				that.$refs.batch.company_id = that.company_id
+				that.$refs.batch.area_id = area_id
+				that.$refs.batch.companyFilePopup = true
+			},
+			//保存单条资产
+			newassert(asset){
+				var that = this
+				$.ajax({
+					type: "post",
+					url: urll + "/req/add_assert",
+					async: true,
+					data: asset,
+					success: function(res) {
+						if (res.res_code == 0) {
+							that.$message.success(res.res_msg)
+							that.$refs.addassert.assertPopup = false
+							that.get_overview()
+						} else {
+							that.$message.error(res.res_msg)
+						}
+					},
+					error: function() {
+						that.$message.error("系统错误请联系管理员")
+					}
+				})
+			},
+			//单条编辑
+			alert_company_asset(item){
+				var that = this
+				item.company_id = that.company_id
+				item.area_id = ""
+				that.$refs.addassert.assert = item
+				that.$refs.addassert.assertPopup = true
+			},
+			//单条添加
+			one_add_company() {
+				var that = this
+				var item = {
+					company_id: that.company_id,
+					area_id: "",
+					assert_id: "",
+					assert_name: "",
+					assert_ip: "",
+					assert_mac: "",
+					assert_vendor: "",
+					product_name:"",
+					assert_num: "",
+					assert_type: "",
+					assert_firmware_version: "",
+					assert_importance: "3",
+				}
+				that.$refs.addassert.assert = item
+				that.$refs.addassert.assertPopup = true
+			},
+			//区域单条编辑
+			alert_area_asset(item,area_id){
+				var that = this
+				item.company_id = that.company_id
+				item.area_id = area_id
+				that.$refs.addassert.assert = item
+				that.$refs.addassert.assertPopup = true
+			},
+			//区域单条添加资产
+			one_add_area(area_id) {
+				var that = this
+				var item = {
+					company_id: that.company_id,
+					area_id: area_id,
+					assert_id: "",
+					assert_name: "",
+					assert_ip: "",
+					assert_mac: "",
+					assert_vendor: "",
+					product_name:"",
+					assert_num: "",
+					assert_type: "",
+					assert_firmware_version: "",
+					assert_importance: "3",
+				}
+				that.$refs.addassert.assert = item
+				that.$refs.addassert.assertPopup = true
+			},
+			//删除单条资产
+			dele_company_asset(index) {
+				var that = this
+				that.$confirm('删除操作不可逆, 是否继续?', '提示', {
+					confirmButtonText: '确定',
+					cancelButtonText: '取消',
+					type: 'warning'
+				}).then(() => {
+					//确定
+					if (that.overview.company_msg.assert_list[index].assert_id == "") {
+						that.overview.company_msg.assert_list.splice(index, 1)
+						that.$message.success("删除成功")
+					} else {
+						$.ajax({
+							type: "get",
+							url: urll + "/req/del_assert?assert_id=" + that.overview.company_msg.assert_list[index].assert_id,
+							async: true,
+							success: function(res) {
+								if (res.res_code == 0) {
+									that.$message.success(res.res_msg)
+									that.get_overview()
+								} else {
+									that.$message.error(res.res_msg)
+								}
+							},
+							error: function() {
+								that.$message.error("系统错误请联系管理员")
+							}
+						})
+					}
+				}).catch(() => {
+					that.$message({
+						type: 'info',
+						message: '已取消删除'
+					});
+				});
+			},
+		}
+	})
+</script>
