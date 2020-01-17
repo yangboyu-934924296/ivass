@@ -735,6 +735,7 @@
 						if (res.res_code == 0) {
 							that.$message.success(res.res_msg)
 							that.record(that.active)
+							location.reload()
 							//跳转
 							window.open("Overview.html?company_id=" + that.company_id,"_blank")
 						} else {
@@ -933,6 +934,7 @@
 						area_importance:"1",
 					}
 					that.$refs.addarea.areaPopup = true
+					that.getarea()
 				}else{
 					that.get_company_asset()
 				}
