@@ -222,12 +222,22 @@
 								<!-- 添加方式控制 -->
 								<div class="operation-type flex flex-between">
 									<!-- 企业资产 -->
-									<div v-show="addType=='c5'||addType==''" :class="addType=='c5'?'box-bg':''"  @click="addtype('c5')">
+									<!-- <div v-show="addType=='c5'||addType==''" :class="addType=='c5'?'box-bg':''"  @click="addtype('c5')">
+										<i class="create5_un" ></i>
+										<span>添加企业资产</span>
+									</div> -->
+									<!-- 企业区域 -->
+									<!-- <div v-show="addType=='c6'||addType==''" :class="addType=='c6'?'box-bg':''"  @click="addtype('c6')">
+										<i class="create6_un" ></i>
+										<span>添加企业区域</span>
+									</div> -->
+									<!-- 企业资产 -->
+									<div :class="addType=='c5'?'box-bg':''"  @click="addtype('c5')">
 										<i class="create5_un" ></i>
 										<span>添加企业资产</span>
 									</div>
 									<!-- 企业区域 -->
-									<div v-show="addType=='c6'||addType==''" :class="addType=='c6'?'box-bg':''"  @click="addtype('c6')">
+									<div :class="addType=='c6'?'box-bg':''"  @click="addtype('c6')">
 										<i class="create6_un" ></i>
 										<span>添加企业区域</span>
 									</div>
@@ -624,6 +634,9 @@
 							}else if(res.res_obj.type == 2){
 								that.addType = "c6"
 								that.getarea()
+							}else if(res.res_obj.type == 3){
+								that.addType = "c5"
+								that.get_company_asset()
 							}
 						} else {
 							that.$message.error(res.res_msg)
