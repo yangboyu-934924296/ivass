@@ -352,7 +352,7 @@
 									<el-button @click="startplan(item.assessment_uniq_id)" :disabled="item.progress>0" size="mini" type="warning" icon="el-icon-video-play" circle></el-button>
 								</td>
 								<td>
-									<span v-show="!(item.progress==100||item.progress=='')">报告生成中，请耐心等待……</span>
+									<!-- <span v-show="!(item.progress==100||item.progress=='')">报告生成中，请耐心等待……</span> -->
 									<el-progress v-show="item.progress!=''" :text-inside="true" :stroke-width="20" :percentage="item.progress"></el-progress>
 								</td>
 								<td>
