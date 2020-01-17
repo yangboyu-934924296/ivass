@@ -258,6 +258,7 @@
 											<th>资产名</th>
 											<th width="150">ip</th>
 											<th width="150">Mac</th>
+											<th>区域</th>
 											<th>厂商</th>
 											<th>产品名称</th>
 											<th>资产型号</th>
@@ -266,7 +267,7 @@
 											<th>操作</th>
 										</tr>
 										<tr v-if="assetList.length==0">
-											<td colspan="9">
+											<td colspan="10">
 												<h2><center>暂无资产</center></h2>
 											</td>
 										</tr>
@@ -274,6 +275,9 @@
 											<td><input class="table-input" type="text" v-model="item.assert_name"></td>
 											<td><input class="table-input" type="text" v-model="item.assert_ip"></td>
 											<td><input class="table-input" type="text" v-model="item.assert_mac"></td>
+											<td>
+												{{item.area}}
+											</td>
 											<td>
 												{{item.assert_vendor}}
 											</td>
