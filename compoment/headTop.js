@@ -96,7 +96,7 @@ Vue.component("headtop",{
 	template:`
 		<div>
 			<div class="headtop flex flex-between">
-				<b>IVASS</b>
+				<b>IVAS</b>
 				<div class="flex flex-around">
 					<div class="flex"><i class="headtop1"></i><span>{{name}}</span></div>
 					<!--div class="flex"><i class="headtop2"></i><span>{{role}}</span></div-->
