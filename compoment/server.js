@@ -1,6 +1,7 @@
 Vue.component("server",{
 	data(){
 		return{
+			ip:"",
 			progress:"0",
 			serverPopup:false,
 			List:[],
@@ -11,13 +12,31 @@ Vue.component("server",{
 	methods:{
 		//关闭弹窗
 		handleClose(done){
-			this.$emit("handclose")
-			done()
+			var that = this
+			if(that.progress=="100"){
+				that.$emit("handclose")
+				done()
+			}else{
+				that.$confirm('是否确认关闭,关闭后终止扫描,下次重新开始扫描,是否继续?', '提示', {
+					confirmButtonText: '确定',
+					cancelButtonText: '取消',
+					type: 'warning'
+				}).then(() => {
+					//确定
+					that.$emit("handclose")
+					done()
+				}).catch(() => {
+					that.$message({
+						type: 'info',
+						message: '已取消'
+					});
+				});
+			}
 		},
 	},
 	template:`
 		<el-dialog title="服务探测" :visible.sync="serverPopup" width="70%" :before-close="handleClose">
-			<div class="flex" style="margin-bottom:10px"><span>探测进度</span>
+			<div class="flex" style="margin-bottom:10px"><span>{{ip}}的探测进度</span>
 				<div style="flex:1;padding-left:20px"><el-progress :text-inside="true" :stroke-width="20" :percentage="progress"></el-progress></div>
 			</div>
 			<div>

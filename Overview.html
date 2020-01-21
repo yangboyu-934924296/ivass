@@ -949,6 +949,7 @@
 						if (res.res_code == 0) {
 							that.$refs.server.List = []
 							that.$nextTick(function(){
+								that.$refs.server.ip = assert.assert_ip
 								that.$refs.server.serverPopup = true
 								//开启socket
 								if(that.server_scoket==""){
