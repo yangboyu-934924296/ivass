@@ -264,7 +264,7 @@ function create_dashboard(chart,data,title){
 					show: false
 				},
 				detail:{
-					formatter:"{value}%",
+					formatter:"{value}",
 					fontSize:14,
 				},
 				pointer:{

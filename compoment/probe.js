@@ -14,7 +14,8 @@ Vue.component("probe",{
 		}
 	},
 	created(){},
-	mounted(){},
+	mounted(){
+	},
 	methods:{
 		save(){
 			var that = this

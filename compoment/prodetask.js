@@ -51,7 +51,7 @@ Vue.component("prodetask",{
 					<table class="yby_table ivass_table">
 						<tr class="shadow">
 							<th>任务名称</th>
-							<th>描述信息</th>
+							
 							<th>网段</th>
 							<th>区域</th>
 							<th>状态</th>
@@ -67,7 +67,7 @@ Vue.component("prodetask",{
 						</tr>
 						<tr v-for="item in probeList" :key="item.id">
 							<td>{{item.task_name}}</td>
-							<td>{{item.task_desc}}</td>
+							
 							<td>{{item.task_network}}</td>
 							<td>{{item.area}}</td>
 							<td>{{item.state}}</td>

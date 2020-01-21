@@ -293,15 +293,28 @@
 											<td>
 												{{item.assert_firmware_version}}
 											</td>
-											<td width="200px">
+											<td width="300px">
 												<div class="flex flex-around">
 													<div class="table-btn" @click="alert_company_asset(item)">编辑</div>
 													<div class="table-btn" @click="newassert(item)">保存</div>
+													<div class="table-btn" @click="server(item)">服务探测</div>
 													<div class="table-btn" @click="dele_company_asset(index)">删除</div>
 												</div>
 											</td>
 										</tr>
 									</table>
+									<!-- 分页 -->
+									<div style="text-align: right;">
+										<el-pagination
+											background
+										    layout="prev, pager, next"
+											:pager-count="5"
+										    :page-count="comtotal"
+										    :current-page="compage"
+											hide-on-single-page
+											@current-change="get_com_table">
+										  </el-pagination>
+									</div>
 								</div>
 								<!-- 添加方式企业区域 -->
 								<div class="box-bg addarea" style="padding: 20px;" v-show="addType=='c6'">
@@ -379,11 +392,24 @@
 													<div class="flex flex-around">
 														<div class="table-btn" @click="alert_area_asset(ite,item.area_id)">编辑</div>
 														<div class="table-btn" @click="newassert(ite)">保存</div>
+														<div class="table-btn" @click="server(ite)">服务探测</div>
 														<div class="table-btn" @click="dele_area_asset(index,inde)">删除</div>
 													</div>
 												</td>
 											</tr>
 										</table>
+										<!-- 分页 -->
+										<div style="text-align: right;">
+											<el-pagination
+												background
+											    layout="prev, pager, next"
+												:pager-count="5"
+											    :page-count="item.areatotal"
+											    :current-page.sync="item.areapage"
+												hide-on-single-page
+												@current-change="get_area_table(item)">
+											  </el-pagination>
+										</div>
 									</div>
 								</div>
 							</div>
@@ -477,6 +503,8 @@
 			<prodetask ref="prodetask" @handclose="prodetaskClose"></prodetask>
 			<!-- 弹窗&资产单条添加 -->
 			<addassert ref="addassert" @newassert="newassert"></addassert>
+			<!-- 弹窗&服务探测 -->
+			<server ref="server" @handclose="sercerclose"></server>
 		</div>
 	</body>
 
@@ -492,6 +520,7 @@
 <script src="compoment/probe.js" type="text/javascript" charset="utf-8"></script>
 <script src="compoment/prodetask.js" type="text/javascript" charset="utf-8"></script>
 <script src="compoment/addassert.js" type="text/javascript" charset="utf-8"></script>
+<script src="compoment/server.js" type="text/javascript" charset="utf-8"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
 <script type="text/javascript">
 	var app = new Vue({
@@ -520,6 +549,8 @@
 			//添加方式
 			addType: '',
 			assetList: [],
+			comtotal:"1",
+			compage:"1",
 			//企业统计
 			company_stat_company_assert:"0",
 			company_stat_com_assert_num:"0",
@@ -543,6 +574,8 @@
 			task_scoket:"",
 			//筛选列表
 			company_type_list:[],
+			//服务探测
+			server_scoket:"",
 		},
 		created() {
 			var that = this
@@ -610,6 +643,49 @@
 			}, 1000);
 		},
 		methods: {
+			//单点资产服务探测
+			server(assert){
+				var that = this
+				assert.company_id = that.company_id
+				$.ajax({
+					type: "post",
+					url: urll + "/req/start_server_scan",
+					async: true,
+					data:assert,
+					success: function(res) {
+						if (res.res_code == 0) {
+							that.$refs.server.List = []
+							that.$nextTick(function(){
+								that.$refs.server.serverPopup = true
+								//开启socket
+								if(that.server_scoket==""){
+									that.server_scoket = new WebSocket(urllws + '/req/search_scan_server');
+									that.server_scoket.onopen=function (event) {
+									    that.server_scoket.send(assert.assert_id)
+									}
+									that.server_scoket.onmessage = function (event) {
+										that.server_scoket.send(assert.assert_id)
+										that.$refs.server.progress = JSON.parse(event.data).progress
+										that.$refs.server.List = JSON.parse(event.data).data
+									};
+								}
+							})
+							
+						} else {
+							that.$message.error(res.res_msg)
+						}
+					},
+					error: function() {
+						that.$message.error("系统错误请联系管理员")
+					}
+				})
+			},
+			//服务关闭
+			sercerclose(){
+				var that = this
+				that.server_scoket.close()
+				that.server_scoket = ""
+			},
 			//统计概览
 			openOverview(company_id){
 				var that = this
@@ -865,6 +941,26 @@
 				});
 			},
 			//获取区域列表
+			//分页
+			get_area_table(area){
+				var that = this
+				$.ajax({
+					type: "get",
+					url: urll + "/req/area_assert_paging?company_id=" + that.company_id+"&area_id="+area.area_id+"&page="+area.areapage,
+					async: true,
+					success: function(res) {
+						if (res.res_code == 0) {
+							that.$set(area,"assert_list",res.res_array)
+							that.$set(area,"areatotal",res.total)
+						} else {
+							that.$message.error(res.res_msg)
+						}
+					},
+					error: function() {
+						that.$message.error("系统错误请联系管理员")
+					}
+				})
+			},
 			getarea(){
 				var that = this
 				$.ajax({
@@ -874,6 +970,9 @@
 					success: function(res) {
 						if (res.res_code == 0) {
 							that.areaList = res.res_array
+							for(var i=0;i<that.areaList.length;i++){
+								that.get_area_table(that.areaList[i])
+							}
 						} else {
 							that.$message.error(res.res_msg)
 						}
@@ -1027,15 +1126,38 @@
 				that.$refs.batch.companyFilePopup = true
 			},
 			//获取企业资产列表
-			get_company_asset(){
+			//分页
+			get_com_table(val){
 				var that = this
+				that.compage = val
 				$.ajax({
 					type: "get",
-					url: urll + "/req/company_assert_list?company_id=" + that.company_id,
+					url: urll + "/req/company_assert_list?company_id=" + that.company_id+"&page="+val,
 					async: true,
 					success: function(res) {
 						if (res.res_code == 0) {
 							that.assetList = res.res_array
+							that.comtotal = res.total
+						} else {
+							that.$message.error(res.res_msg)
+						}
+					},
+					error: function() {
+						that.$message.error("系统错误请联系管理员")
+					}
+				})
+			},
+			get_company_asset(){
+				var that = this
+				that.compage = 1
+				$.ajax({
+					type: "get",
+					url: urll + "/req/company_assert_list?company_id=" + that.company_id+"&page=1",
+					async: true,
+					success: function(res) {
+						if (res.res_code == 0) {
+							that.assetList = res.res_array
+							that.comtotal = res.total
 						} else {
 							that.$message.error(res.res_msg)
 						}
